@@ -19,7 +19,8 @@ service.interceptors.request.use(
       // let each request carry token
       // ['X-Token'] is a custom headers key
       // please modify it according to the actual situation
-      config.headers['Authorization'] = 'Bearer ' + getToken()
+      // config.headers['Authorization'] = 'Bearer ' + getToken()
+      config.headers['Authorization'] = process.env.JWTTOKEN + getToken()
     }
     return config
   },
@@ -43,52 +44,64 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
-    const code = response.data.code
-    if (code === 401) {
-      store.dispatch('user/resetToken')
-      if (location.href.indexOf('login') !== -1) {
-        location.reload() // 为了重新实例化vue-router对象 避免bug
-      } else {
-        MessageBox.confirm(
-          '登录状态已过期，您可以继续留在该页面，或者重新登录',
-          '系统提示',
-          {
-            confirmButtonText: '重新登录',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }
-        ).then(() => {
-          location.reload() // 为了重新实例化vue-router对象 避免bug
-        })
-      }
-    } else if (code === 6401) {
-      store.dispatch('user/resetToken')
-      MessageBox.confirm(
-        '登录状态已过期，您可以继续留在该页面，或者重新登录',
-        '系统提示',
-        {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      ).then(() => {
-        location.reload() // 为了重新实例化vue-router对象 避免bug
-      })
-      return false
-    } else if (code === 400 || code === 403) {
+    console.log(response)
+    const satus_code = response.status
+    const msg = response.data.errmsg
+    if (msg) {
       Message({
-        message: response.data.msg,
+        message: response.data.errmsg,
         type: 'error',
         duration: 5 * 1000
       })
-    } else if (code !== 200) {
-      Notification.error({
-        title: response.data.msg
-      })
-      return Promise.reject('error')
-    } else {
-      return response.data
     }
+    response.data.data.host = process.env.VUE_APP_BASE_API
+    return response.data.data
+    // const code = response.data.code
+    // if (code === 401) {
+    //   store.dispatch('user/resetToken')
+    //   if (location.href.indexOf('login') !== -1) {
+    //     location.reload() // 为了重新实例化vue-router对象 避免bug
+    //   } else {
+    //     MessageBox.confirm(
+    //       '登录状态已过期，您可以继续留在该页面，或者重新登录',
+    //       '系统提示',
+    //       {
+    //         confirmButtonText: '重新登录',
+    //         cancelButtonText: '取消',
+    //         type: 'warning'
+    //       }
+    //     ).then(() => {
+    //       location.reload() // 为了重新实例化vue-router对象 避免bug
+    //     })
+    //   }
+    // } else if (code === 6401) {
+    //   store.dispatch('user/resetToken')
+    //   MessageBox.confirm(
+    //     '登录状态已过期，您可以继续留在该页面，或者重新登录',
+    //     '系统提示',
+    //     {
+    //       confirmButtonText: '重新登录',
+    //       cancelButtonText: '取消',
+    //       type: 'warning'
+    //     }
+    //   ).then(() => {
+    //     location.reload() // 为了重新实例化vue-router对象 避免bug
+    //   })
+    //   return false
+    // } else if (code === 400 || code === 403) {
+    //   Message({
+    //     message: response.data.msg,
+    //     type: 'error',
+    //     duration: 5 * 1000
+    //   })
+    // } else if (code !== 200) {
+    //   Notification.error({
+    //     title: response.data.msg
+    //   })
+    //   return Promise.reject('error')
+    // } else {
+    //   return response.data
+    // }
   },
   error => {
     if (error.message === 'Network Error') {
