@@ -41,40 +41,58 @@ const mutations = {
 const actions = {
   // user login
   login({ commit }, userInfo) {
+    console.log('store user login bf')
     return new Promise((resolve, reject) => {
       login(userInfo).then(response => {
         const { token } = response
+        console.log('set_token commit')
         commit('SET_TOKEN', token)
-        setToken(token)
+        // setToken(token)
         resolve()
       }).catch(error => {
         reject(error)
       })
     })
   },
-
   // get user info
+  // getInfo({ commit, state }) {
+  //   return new Promise((resolve, reject) => {
+  //     getInfo().then(response => {
+  //       if (!response || !response.data) {
+  //         commit('SET_TOKEN', '')
+  //         removeToken()
+  //         resolve()
+  //       }
+  //       const { roles, name, avatar, introduction, permissions } = response.data
+  //       // roles must be a non-empty array
+  //       if (!roles || roles.length <= 0) {
+  //         reject('getInfo: roles must be a non-null array!')
+  //       }
+  //       commit('SET_PERMISSIONS', permissions)
+  //       commit('SET_ROLES', roles)
+  //       commit('SET_NAME', name)
+  //       commit('SET_AVATAR', avatar)
+  //       commit('SET_INTRODUCTION', introduction)
+  //       resolve(response)
+  //     }).catch(error => {
+  //       reject(error)
+  //     })
+  //   })
+  // },
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
-      getInfo().then(response => {
-        if (!response || !response.data) {
-          commit('SET_TOKEN', '')
-          removeToken()
-          resolve()
+      getInfo(state.token).then(response => {
+        const { data } = response
+
+        if (!data) {
+          reject('Verification failed, please Login again.')
         }
 
-        const { roles, name, avatar, introduction, permissions } = response.data
+        const { name, avatar } = data
 
-        // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
-        }
-        commit('SET_PERMISSIONS', permissions)
-        commit('SET_ROLES', roles)
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
-        commit('SET_INTRODUCTION', introduction)
-        resolve(response)
+        resolve(data)
       }).catch(error => {
         reject(error)
       })
